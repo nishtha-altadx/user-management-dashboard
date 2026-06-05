@@ -1,20 +1,27 @@
 import "./Modal.css";
 
-interface Props {
+interface ModalProps {
   open: boolean;
   title: string;
   children: React.ReactNode;
+  onClose: () => void;
 }
 
-export const Modal = ({ open, title, children }: Props) => {
+export const Modal = ({ open, title, children, onClose }: ModalProps) => {
   if (!open) return null;
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal-card">
-        <h2>{title}</h2>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{title}</h2>
 
-        {children}
+          <button className="modal-close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );

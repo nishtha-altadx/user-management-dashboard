@@ -10,3 +10,13 @@
 .custom-input:focus {
   border-color: #2563eb;
 }
+
+.input-error {
+  border-color: #dc2626;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 5px;
+}

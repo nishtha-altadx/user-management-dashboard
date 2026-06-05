@@ -1,13 +1,10 @@
 import "./Toast.css";
 
-interface Props {
+interface ToastProps {
   message: string;
+  type?: "success" | "error";
 }
 
-export const Toast = ({ message }: Props) => {
-  return (
-    <div className="toast">
-      {message}
-    </div>
-  );
+export const Toast = ({ message, type = "success" }: ToastProps) => {
+  return <div className={`toast toast-${type}`}>{message}</div>;
 };
