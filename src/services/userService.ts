@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { User } from "../features/users/types/user";
+import type { User } from "../types/user";
 
 const BASE_URL = "https://jsonplaceholder.typicode.com";
 

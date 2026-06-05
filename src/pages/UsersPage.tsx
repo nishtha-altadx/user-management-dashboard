@@ -1,20 +1,19 @@
 import { useState } from "react";
-
 import "./UsersPage.css";
-
 import { Button } from "../components/ui/Button/Button";
 import { Input } from "../components/ui/Input/Input";
 import { Loader } from "../components/ui/Loader/Loader";
 import { EmptyState } from "../components/ui/EmptyState/EmptyState";
-
-import { UserTable } from "../features/users/components/UserTable/UserTable";
-
-import { useUsers } from "../features/users/hooks/useUsers";
+import { Table } from "../components/Table/Table";
+import { useUsers } from "../hooks/useUsers";
+import type { User } from "../types/user";
 
 export const UsersPage = () => {
   const [search, setSearch] = useState("");
 
   const { data: users = [], isLoading, error } = useUsers();
+
+  const headers = ["Name", "Email", "Phone", "Actions"];
 
   return (
     <div className="page-container">
@@ -45,7 +44,39 @@ export const UsersPage = () => {
       ) : users.length === 0 ? (
         <EmptyState title="No Users Found" />
       ) : (
-        <UserTable users={users} />
+        <Table<User>
+          headers={headers}
+          data={users}
+          renderCell={(user, column) => {
+            switch (column) {
+              case "Name":
+                return user.name;
+
+              case "Email":
+                return user.email;
+
+              case "Phone":
+                return user.phone;
+
+              case "Actions":
+                return (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                    }}
+                  >
+                    <Button>Edit</Button>
+
+                    <Button variant="danger">Delete</Button>
+                  </div>
+                );
+
+              default:
+                return null;
+            }
+          }}
+        />
       )}
     </div>
   );
