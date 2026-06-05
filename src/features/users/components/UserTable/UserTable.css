@@ -1,0 +1,52 @@
+.user-table-card {
+  background: white;
+  border-radius: 16px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table thead {
+  background: #eff6ff;
+}
+
+.user-table th {
+  text-align: left;
+  padding: 18px 24px;
+
+  color: #1f2937;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.user-table td {
+  padding: 18px 24px;
+
+  border-top: 1px solid #f1f5f9;
+}
+
+.user-table tbody tr {
+  transition: background 0.2s;
+}
+
+.user-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.actions-column {
+  width: 220px;
+}
