@@ -12,6 +12,9 @@ import { UserForm } from "../components/UserForm/UserForm";
 import { useCreateUser } from "../hooks/useCreateUsers";
 import { useEffect } from "react";
 import { Toast } from "../components/ui/Toast/Toast";
+import { useUpdateUser } from "../hooks/useUpdateUser";
+import { useDeleteUser } from "../hooks/useDeleteUsers";
+import { DeleteConfirmationModal } from "../components/DeleteConfirmationModal/DeleteConfirmationModal";
 
 export const UsersPage = () => {
   const [search, setSearch] = useState("");
@@ -20,7 +23,11 @@ export const UsersPage = () => {
   const [formKey, setFormKey] = useState(0);
   const headers = ["Name", "Email", "Phone", "Actions"];
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -55,8 +62,14 @@ export const UsersPage = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-
-          <Button onClick={() => setIsModalOpen(true)}>Create User</Button>
+          <Button
+            onClick={() => {
+              setSelectedUser(null);
+              setIsModalOpen(true);
+            }}
+          >
+            Create User
+          </Button>
         </div>
 
         {isLoading ? (
@@ -88,9 +101,21 @@ export const UsersPage = () => {
                         gap: "10px",
                       }}
                     >
-                      <Button>Edit</Button>
+                      <Button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setIsModalOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
 
-                      <Button variant="danger">Delete</Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => setUserToDelete(user)}
+                      >
+                        Delete
+                      </Button>
                     </div>
                   );
 
@@ -104,13 +129,59 @@ export const UsersPage = () => {
 
       <Modal
         open={isModalOpen}
-        title="Create User"
-        onClose={() => setIsModalOpen(false)}
+        title={selectedUser ? "Edit User" : "Create User"}
+        onClose={() => {
+          setSelectedUser(null);
+          setIsModalOpen(false);
+        }}
       >
         <UserForm
-          key={formKey}
-          isSubmitting={createUserMutation.isPending}
+          key={selectedUser?.id ?? "create"}
+          initialValues={
+            selectedUser
+              ? {
+                  name: selectedUser.name,
+                  email: selectedUser.email,
+                  phone: selectedUser.phone,
+                }
+              : undefined
+          }
+          isSubmitting={
+            createUserMutation.isPending || updateUserMutation.isPending
+          }
           onSubmit={(data) => {
+            if (selectedUser) {
+              updateUserMutation.mutate(
+                {
+                  id: selectedUser.id,
+                  user: data,
+                },
+                {
+                  onSuccess: () => {
+                    setToast({
+                      message: "User updated successfully",
+                      type: "success",
+                    });
+
+                    setSelectedUser(null);
+
+                    setFormKey((prev) => prev + 1);
+
+                    setIsModalOpen(false);
+                  },
+
+                  onError: () => {
+                    setToast({
+                      message: "Failed to update user",
+                      type: "error",
+                    });
+                  },
+                },
+              );
+
+              return;
+            }
+
             createUserMutation.mutate(data, {
               onSuccess: () => {
                 setToast({
@@ -133,6 +204,34 @@ export const UsersPage = () => {
           }}
         />
       </Modal>
+
+      <DeleteConfirmationModal
+        open={!!userToDelete}
+        userName={userToDelete?.name ?? ""}
+        isDeleting={deleteUserMutation.isPending}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={() => {
+          if (!userToDelete) return;
+
+          deleteUserMutation.mutate(userToDelete.id, {
+            onSuccess: () => {
+              setToast({
+                message: "User deleted successfully",
+                type: "success",
+              });
+
+              setUserToDelete(null);
+            },
+
+            onError: () => {
+              setToast({
+                message: "Failed to delete user",
+                type: "error",
+              });
+            },
+          });
+        }}
+      />
       {toast && <Toast message={toast.message} type={toast.type} />}
     </>
   );

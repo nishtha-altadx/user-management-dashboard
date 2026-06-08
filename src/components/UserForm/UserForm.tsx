@@ -10,17 +10,31 @@ interface UserFormProps {
   onSubmit: (data: UserFormData) => void;
 
   isSubmitting?: boolean;
+
+  initialValues?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
 }
 
-export const UserForm = ({ onSubmit, isSubmitting = false }: UserFormProps) => {
+export const UserForm = ({
+  onSubmit,
+  isSubmitting = false,
+  initialValues,
+}: UserFormProps) => {
   const {
     register,
-
     handleSubmit,
-
     formState: { errors },
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
+
+    defaultValues: {
+      name: initialValues?.name ?? "",
+      email: initialValues?.email ?? "",
+      phone: initialValues?.phone ?? "",
+    },
   });
 
   const submitHandler = (data: UserFormData) => {

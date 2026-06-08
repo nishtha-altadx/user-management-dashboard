@@ -21,3 +21,29 @@ export const createUser = async (user: {
 
   return response.data;
 };
+
+export const updateUser = async ({
+  id,
+  user,
+}: {
+  id: number;
+  user: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+}) => {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const response = await axios.put(`${BASE_URL}/users/${id}`, user);
+
+  return response.data;
+};
+
+export const deleteUser = async (id: number) => {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const response = await axios.delete(`${BASE_URL}/users/${id}`);
+
+  return response.data;
+};
