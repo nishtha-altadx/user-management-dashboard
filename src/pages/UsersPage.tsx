@@ -10,7 +10,7 @@ import type { User } from "../types/user";
 import { Modal } from "../components/ui/Modal/Modal";
 import { UserForm } from "../components/UserForm/UserForm";
 import { useCreateUser } from "../hooks/useCreateUsers";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Toast } from "../components/ui/Toast/Toast";
 import { useUpdateUser } from "../hooks/useUpdateUser";
 import { useDeleteUser } from "../hooks/useDeleteUsers";
@@ -20,6 +20,21 @@ export const UsersPage = () => {
   const [search, setSearch] = useState("");
 
   const { data: users = [], isLoading, error } = useUsers();
+  const filteredUsers = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
+
+    if (!searchText) {
+      return users;
+    }
+
+    return users.filter((user) => {
+      return (
+        user.name.toLowerCase().includes(searchText) ||
+        user.email.toLowerCase().includes(searchText) ||
+        user.phone.toLowerCase().includes(searchText)
+      );
+    });
+  }, [users, search]);
   const [formKey, setFormKey] = useState(0);
   const headers = ["Name", "Email", "Phone", "Actions"];
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,16 +87,28 @@ export const UsersPage = () => {
           </Button>
         </div>
 
+        <div
+          style={{
+            marginBottom: "20px",
+            color: "#64748b",
+            fontSize: "14px",
+          }}
+        >
+          Showing {filteredUsers.length} of {users.length} users
+        </div>
+
         {isLoading ? (
           <Loader />
         ) : error ? (
           <EmptyState title="Failed to load users" />
         ) : users.length === 0 ? (
           <EmptyState title="No Users Found" />
+        ) : filteredUsers.length === 0 ? (
+          <EmptyState title="No Matching Users" />
         ) : (
           <Table<User>
             headers={headers}
-            data={users}
+            data={filteredUsers}
             renderCell={(user, column) => {
               switch (column) {
                 case "Name":
@@ -104,6 +131,7 @@ export const UsersPage = () => {
                       <Button
                         onClick={() => {
                           setSelectedUser(user);
+
                           setIsModalOpen(true);
                         }}
                       >
