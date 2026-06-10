@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -38,14 +39,39 @@ export const useDeleteUser = () => {
 
 //  Business logic for user management
 
-export const useUserManagement = () => {
+export const useUserManagement = (search: string) => {
   const queryClient = useQueryClient();
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   const { data: users = [], isLoading, error } = useUsers();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
+
+  const filteredUsers = useMemo(() => {
+    const searchText = debouncedSearch.trim().toLowerCase();
+
+    if (!searchText) {
+      return users;
+    }
+
+    return users.filter((user) => {
+      return (
+        user.name.toLowerCase().includes(searchText) ||
+        user.email.toLowerCase().includes(searchText) ||
+        user.phone.toLowerCase().includes(searchText)
+      );
+    });
+  }, [users, debouncedSearch]);
 
   const handleSubmit = (
     data: {
@@ -143,5 +169,6 @@ export const useUserManagement = () => {
 
     isSubmitting,
     isDeleting,
+    filteredUsers,
   };
 };

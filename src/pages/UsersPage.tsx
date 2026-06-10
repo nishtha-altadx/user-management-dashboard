@@ -31,23 +31,8 @@ export const UsersPage = () => {
 
     isSubmitting,
     isDeleting,
-  } = useUserManagement();
-
-  const filteredUsers = useMemo(() => {
-    const searchText = search.trim().toLowerCase();
-
-    if (!searchText) {
-      return users;
-    }
-
-    return users.filter((user) => {
-      return (
-        user.name.toLowerCase().includes(searchText) ||
-        user.email.toLowerCase().includes(searchText) ||
-        user.phone.toLowerCase().includes(searchText)
-      );
-    });
-  }, [users, search]);
+    filteredUsers,
+  } = useUserManagement(search);
 
   return (
     <>
