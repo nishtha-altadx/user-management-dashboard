@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import "./UsersPage.css";
 import { Button } from "../components/ui/Button/Button";
 import { Input } from "../components/ui/Input/Input";
@@ -5,43 +6,48 @@ import { Loader } from "../components/ui/Loader/Loader";
 import { EmptyState } from "../components/ui/EmptyState/EmptyState";
 import { Table } from "../components/Table/Table";
 import { Modal } from "../components/ui/Modal/Modal";
-import { Toast } from "../components/ui/Toast/Toast";
 import { UserForm } from "../components/UserForm/UserForm";
 import { DeleteConfirmationModal } from "../components/DeleteConfirmationModal/DeleteConfirmationModal";
 import type { User } from "../types/user";
 import { useUserManagement } from "../hooks/useUserManagement";
+import { toast } from "react-toastify";
 
 const headers = ["Name", "Email", "Phone", "Actions"];
 
 export const UsersPage = () => {
+  const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
   const {
     users,
-    filteredUsers,
 
     isLoading,
     error,
 
-    search,
-    setSearch,
-
-    toast,
-
-    isModalOpen,
-    selectedUser,
-
-    userToDelete,
-    setUserToDelete,
+    handleSubmit,
+    handleDelete,
 
     isSubmitting,
     isDeleting,
-
-    openCreateModal,
-    openEditModal,
-    closeModal,
-
-    handleSubmit,
-    handleDelete,
   } = useUserManagement();
+
+  const filteredUsers = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
+
+    if (!searchText) {
+      return users;
+    }
+
+    return users.filter((user) => {
+      return (
+        user.name.toLowerCase().includes(searchText) ||
+        user.email.toLowerCase().includes(searchText) ||
+        user.phone.toLowerCase().includes(searchText)
+      );
+    });
+  }, [users, search]);
 
   return (
     <>
@@ -62,7 +68,14 @@ export const UsersPage = () => {
             />
           </div>
 
-          <Button onClick={openCreateModal}>Create User</Button>
+          <Button
+            onClick={() => {
+              setSelectedUser(null);
+              setIsModalOpen(true);
+            }}
+          >
+            Create User
+          </Button>
         </div>
 
         <div
@@ -106,7 +119,14 @@ export const UsersPage = () => {
                         gap: "10px",
                       }}
                     >
-                      <Button onClick={() => openEditModal(user)}>Edit</Button>
+                      <Button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setIsModalOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
 
                       <Button
                         variant="danger"
@@ -128,7 +148,10 @@ export const UsersPage = () => {
       <Modal
         open={isModalOpen}
         title={selectedUser ? "Edit User" : "Create User"}
-        onClose={closeModal}
+        onClose={() => {
+          setSelectedUser(null);
+          setIsModalOpen(false);
+        }}
       >
         <UserForm
           key={selectedUser?.id ?? "create"}
@@ -142,7 +165,18 @@ export const UsersPage = () => {
               : undefined
           }
           isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
+          onSubmit={(data) =>
+            handleSubmit(data, selectedUser, {
+              closeModal: () => {
+                setSelectedUser(null);
+                setIsModalOpen(false);
+              },
+
+              onSuccess: (message) => toast.success(message),
+
+              onError: (message) => toast.error(message),
+            })
+          }
         />
       </Modal>
 
@@ -151,10 +185,17 @@ export const UsersPage = () => {
         userName={userToDelete?.name ?? ""}
         isDeleting={isDeleting}
         onClose={() => setUserToDelete(null)}
-        onConfirm={handleDelete}
-      />
+        onConfirm={() =>
+          handleDelete(userToDelete, {
+            onSuccess: (message) => {
+              setUserToDelete(null);
+              toast.success(message);
+            },
 
-      {toast && <Toast message={toast.message} type={toast.type} />}
+            onError: (message) => toast.error(message),
+          })
+        }
+      />
     </>
   );
 };

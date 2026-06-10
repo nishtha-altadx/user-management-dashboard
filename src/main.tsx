@@ -7,12 +7,15 @@ import { store } from "./app/store.ts";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./app/queryClient.ts";
 import "./styles/global.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
         <App />
+        <ToastContainer />
       </Provider>
     </QueryClientProvider>
   </StrictMode>,

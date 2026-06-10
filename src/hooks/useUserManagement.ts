@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -10,7 +9,7 @@ import {
 
 import type { User } from "../types/user";
 
-// Reusable Hooks
+// reusable  hooks
 
 export const useUsers = () => {
   return useQuery({
@@ -37,88 +36,30 @@ export const useDeleteUser = () => {
   });
 };
 
-//   Stateful Business Hook
+//  Business logic for user management
 
 export const useUserManagement = () => {
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = useState("");
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
-
-  //     Query
-
   const { data: users = [], isLoading, error } = useUsers();
 
-  //     Mutations
-
   const createUserMutation = useCreateUser();
-
   const updateUserMutation = useUpdateUser();
-
   const deleteUserMutation = useDeleteUser();
 
-  //   Derived State
-
-  const filteredUsers = useMemo(() => {
-    const searchText = search.trim().toLowerCase();
-
-    if (!searchText) {
-      return users;
-    }
-
-    return users.filter((user) => {
-      return (
-        user.name.toLowerCase().includes(searchText) ||
-        user.email.toLowerCase().includes(searchText) ||
-        user.phone.toLowerCase().includes(searchText)
-      );
-    });
-  }, [users, search]);
-
-  //   Toast
-
-  useEffect(() => {
-    if (!toast) return;
-
-    const timer = setTimeout(() => {
-      setToast(null);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [toast]);
-
-  //   Modal Actions
-
-  const openCreateModal = () => {
-    setSelectedUser(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (user: User) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setSelectedUser(null);
-    setIsModalOpen(false);
-  };
-
-  //   Submit
-
-  const handleSubmit = (data: {
-    name: string;
-    email: string;
-    phone: string;
-  }) => {
+  const handleSubmit = (
+    data: {
+      name: string;
+      email: string;
+      phone: string;
+    },
+    selectedUser: User | null,
+    callbacks: {
+      onSuccess: (message: string) => void;
+      onError: (message: string) => void;
+      closeModal: () => void;
+    },
+  ) => {
     if (selectedUser) {
       updateUserMutation.mutate(
         {
@@ -131,19 +72,13 @@ export const useUserManagement = () => {
               queryKey: ["users"],
             });
 
-            setToast({
-              message: "User updated successfully",
-              type: "success",
-            });
+            callbacks.closeModal();
 
-            closeModal();
+            callbacks.onSuccess("User updated successfully");
           },
 
           onError: () => {
-            setToast({
-              message: "Failed to update user",
-              type: "error",
-            });
+            callbacks.onError("Failed to update user");
           },
         },
       );
@@ -157,26 +92,24 @@ export const useUserManagement = () => {
           queryKey: ["users"],
         });
 
-        setToast({
-          message: "User created successfully",
-          type: "success",
-        });
+        callbacks.closeModal();
 
-        closeModal();
+        callbacks.onSuccess("User created successfully");
       },
 
       onError: () => {
-        setToast({
-          message: "Failed to create user",
-          type: "error",
-        });
+        callbacks.onError("Failed to create user");
       },
     });
   };
 
-  //   Delete
-
-  const handleDelete = () => {
+  const handleDelete = (
+    userToDelete: User | null,
+    callbacks: {
+      onSuccess: (message: string) => void;
+      onError: (message: string) => void;
+    },
+  ) => {
     if (!userToDelete) return;
 
     deleteUserMutation.mutate(userToDelete.id, {
@@ -185,19 +118,11 @@ export const useUserManagement = () => {
           queryKey: ["users"],
         });
 
-        setToast({
-          message: "User deleted successfully",
-          type: "success",
-        });
-
-        setUserToDelete(null);
+        callbacks.onSuccess("User deleted successfully");
       },
 
       onError: () => {
-        setToast({
-          message: "Failed to delete user",
-          type: "error",
-        });
+        callbacks.onError("Failed to delete user");
       },
     });
   };
@@ -209,25 +134,9 @@ export const useUserManagement = () => {
 
   return {
     users,
-    filteredUsers,
 
     isLoading,
     error,
-
-    search,
-    setSearch,
-
-    toast,
-
-    isModalOpen,
-    selectedUser,
-
-    userToDelete,
-    setUserToDelete,
-
-    openCreateModal,
-    openEditModal,
-    closeModal,
 
     handleSubmit,
     handleDelete,
