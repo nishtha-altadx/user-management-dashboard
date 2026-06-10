@@ -10,6 +10,7 @@ import { UserForm } from "../components/UserForm/UserForm";
 import { DeleteConfirmationModal } from "../components/DeleteConfirmationModal/DeleteConfirmationModal";
 import type { User } from "../types/user";
 import { useUserManagement } from "../hooks/useUserManagement";
+import { useToast } from "../hooks/useToast";
 
 const headers = ["Name", "Email", "Phone", "Actions"];
 
@@ -18,6 +19,7 @@ export const UsersPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const { showSuccess, showError } = useToast();
 
   const {
     users,
@@ -150,9 +152,25 @@ export const UsersPage = () => {
           }
           isSubmitting={isSubmitting}
           onSubmit={(data) =>
-            handleSubmit(data, selectedUser, () => {
-              setSelectedUser(null);
-              setIsModalOpen(false);
+            handleSubmit(data, selectedUser, {
+              onSuccess: () => {
+                setSelectedUser(null);
+                setIsModalOpen(false);
+
+                showSuccess(
+                  selectedUser
+                    ? "User updated successfully"
+                    : "User created successfully",
+                );
+              },
+
+              onError: () => {
+                showError(
+                  selectedUser
+                    ? "Failed to update user"
+                    : "Failed to create user",
+                );
+              },
             })
           }
         />
@@ -164,8 +182,16 @@ export const UsersPage = () => {
         isDeleting={isDeleting}
         onClose={() => setUserToDelete(null)}
         onConfirm={() =>
-          handleDelete(userToDelete, () => {
-            setUserToDelete(null);
+          handleDelete(userToDelete, {
+            onSuccess: () => {
+              setUserToDelete(null);
+
+              showSuccess("User deleted successfully");
+            },
+
+            onError: () => {
+              showError("Failed to delete user");
+            },
           })
         }
       />

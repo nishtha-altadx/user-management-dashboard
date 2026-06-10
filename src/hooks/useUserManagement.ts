@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "./useToast";
 
 import {
   getUsers,
@@ -42,7 +41,6 @@ export const useDeleteUser = () => {
 
 export const useUserManagement = (search: string) => {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useToast();
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   const { data: users = [], isLoading, error } = useUsers();
@@ -82,7 +80,10 @@ export const useUserManagement = (search: string) => {
       phone: string;
     },
     selectedUser: User | null,
-    closeModal: () => void,
+    callbacks: {
+      onSuccess: () => void;
+      onError: () => void;
+    },
   ) => {
     if (selectedUser) {
       updateUserMutation.mutate(
@@ -96,13 +97,11 @@ export const useUserManagement = (search: string) => {
               queryKey: ["users"],
             });
 
-            closeModal();
-
-            showSuccess("User updated successfully");
+            callbacks.onSuccess();
           },
 
           onError: () => {
-            showError("Failed to update user");
+            callbacks.onError();
           },
         },
       );
@@ -116,18 +115,22 @@ export const useUserManagement = (search: string) => {
           queryKey: ["users"],
         });
 
-        closeModal();
-
-        showSuccess("User created successfully");
+        callbacks.onSuccess();
       },
 
       onError: () => {
-        showError("Failed to create user");
+        callbacks.onError();
       },
     });
   };
 
-  const handleDelete = (userToDelete: User | null, onSuccess: () => void) => {
+  const handleDelete = (
+    userToDelete: User | null,
+    callbacks: {
+      onSuccess: () => void;
+      onError: () => void;
+    },
+  ) => {
     if (!userToDelete) return;
 
     deleteUserMutation.mutate(userToDelete.id, {
@@ -136,13 +139,11 @@ export const useUserManagement = (search: string) => {
           queryKey: ["users"],
         });
 
-        onSuccess();
-
-        showSuccess("User deleted successfully");
+        callbacks.onSuccess();
       },
 
       onError: () => {
-        showError("Failed to delete user");
+        callbacks.onError();
       },
     });
   };
