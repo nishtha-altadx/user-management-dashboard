@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import "./UsersPage.css";
 import { Button } from "../components/ui/Button/Button";
 import { Input } from "../components/ui/Input/Input";
@@ -10,7 +10,6 @@ import { UserForm } from "../components/UserForm/UserForm";
 import { DeleteConfirmationModal } from "../components/DeleteConfirmationModal/DeleteConfirmationModal";
 import type { User } from "../types/user";
 import { useUserManagement } from "../hooks/useUserManagement";
-import { toast } from "react-toastify";
 
 const headers = ["Name", "Email", "Phone", "Actions"];
 
@@ -151,15 +150,9 @@ export const UsersPage = () => {
           }
           isSubmitting={isSubmitting}
           onSubmit={(data) =>
-            handleSubmit(data, selectedUser, {
-              closeModal: () => {
-                setSelectedUser(null);
-                setIsModalOpen(false);
-              },
-
-              onSuccess: (message) => toast.success(message),
-
-              onError: (message) => toast.error(message),
+            handleSubmit(data, selectedUser, () => {
+              setSelectedUser(null);
+              setIsModalOpen(false);
             })
           }
         />
@@ -171,13 +164,8 @@ export const UsersPage = () => {
         isDeleting={isDeleting}
         onClose={() => setUserToDelete(null)}
         onConfirm={() =>
-          handleDelete(userToDelete, {
-            onSuccess: (message) => {
-              setUserToDelete(null);
-              toast.success(message);
-            },
-
-            onError: (message) => toast.error(message),
+          handleDelete(userToDelete, () => {
+            setUserToDelete(null);
           })
         }
       />

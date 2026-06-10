@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "./useToast";
 
 import {
   getUsers,
@@ -41,6 +42,7 @@ export const useDeleteUser = () => {
 
 export const useUserManagement = (search: string) => {
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useToast();
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   const { data: users = [], isLoading, error } = useUsers();
@@ -80,11 +82,7 @@ export const useUserManagement = (search: string) => {
       phone: string;
     },
     selectedUser: User | null,
-    callbacks: {
-      onSuccess: (message: string) => void;
-      onError: (message: string) => void;
-      closeModal: () => void;
-    },
+    closeModal: () => void,
   ) => {
     if (selectedUser) {
       updateUserMutation.mutate(
@@ -98,13 +96,13 @@ export const useUserManagement = (search: string) => {
               queryKey: ["users"],
             });
 
-            callbacks.closeModal();
+            closeModal();
 
-            callbacks.onSuccess("User updated successfully");
+            showSuccess("User updated successfully");
           },
 
           onError: () => {
-            callbacks.onError("Failed to update user");
+            showError("Failed to update user");
           },
         },
       );
@@ -118,24 +116,18 @@ export const useUserManagement = (search: string) => {
           queryKey: ["users"],
         });
 
-        callbacks.closeModal();
+        closeModal();
 
-        callbacks.onSuccess("User created successfully");
+        showSuccess("User created successfully");
       },
 
       onError: () => {
-        callbacks.onError("Failed to create user");
+        showError("Failed to create user");
       },
     });
   };
 
-  const handleDelete = (
-    userToDelete: User | null,
-    callbacks: {
-      onSuccess: (message: string) => void;
-      onError: (message: string) => void;
-    },
-  ) => {
+  const handleDelete = (userToDelete: User | null, onSuccess: () => void) => {
     if (!userToDelete) return;
 
     deleteUserMutation.mutate(userToDelete.id, {
@@ -144,11 +136,13 @@ export const useUserManagement = (search: string) => {
           queryKey: ["users"],
         });
 
-        callbacks.onSuccess("User deleted successfully");
+        onSuccess();
+
+        showSuccess("User deleted successfully");
       },
 
       onError: () => {
-        callbacks.onError("Failed to delete user");
+        showError("Failed to delete user");
       },
     });
   };
