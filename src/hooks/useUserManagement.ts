@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 import {
   useUsers,
@@ -8,12 +7,7 @@ import {
   useDeleteUser,
 } from "../services/userService";
 
-import type { User, UserFormValues } from "../types/user";
-
-//  Business logic for user management
-
 export const useUserManagement = (search: string) => {
-  const queryClient = useQueryClient();
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   const { data: users = [], isLoading, error } = useUsers();
@@ -46,77 +40,6 @@ export const useUserManagement = (search: string) => {
     });
   }, [users, debouncedSearch]);
 
-  const handleSubmit = (
-    data: UserFormValues,
-    selectedUser: User | null,
-    callbacks: {
-      onSuccess: () => void;
-      onError: () => void;
-    },
-  ) => {
-    if (selectedUser) {
-      updateUserMutation.mutate(
-        {
-          id: selectedUser.id,
-          user: data,
-        },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({
-              queryKey: ["users"],
-            });
-
-            callbacks.onSuccess();
-          },
-
-          onError: () => {
-            callbacks.onError();
-          },
-        },
-      );
-
-      return;
-    }
-
-    createUserMutation.mutate(data, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["users"],
-        });
-
-        callbacks.onSuccess();
-      },
-
-      onError: () => {
-        callbacks.onError();
-      },
-    });
-  };
-
-  const handleDelete = (
-    userToDelete: User | null,
-    callbacks: {
-      onSuccess: () => void;
-      onError: () => void;
-    },
-  ) => {
-    if (!userToDelete) return;
-
-    deleteUserMutation.mutate(userToDelete.id, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["users"],
-        });
-
-        callbacks.onSuccess();
-      },
-
-      onError: () => {
-        callbacks.onError();
-      },
-    });
-  };
-
   const isSubmitting =
     createUserMutation.isPending || updateUserMutation.isPending;
 
@@ -128,8 +51,9 @@ export const useUserManagement = (search: string) => {
     isLoading,
     error,
 
-    handleSubmit,
-    handleDelete,
+    createUserMutation,
+    updateUserMutation,
+    deleteUserMutation,
 
     isSubmitting,
     isDeleting,

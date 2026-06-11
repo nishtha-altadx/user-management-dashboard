@@ -8,9 +8,10 @@ import { Table } from "../components/Table/Table";
 import { Modal } from "../components/ui/Modal/Modal";
 import { UserForm } from "../components/UserForm/UserForm";
 import { DeleteConfirmationModal } from "../components/DeleteConfirmationModal/DeleteConfirmationModal";
-import type { User } from "../types/user";
 import { useUserManagement } from "../hooks/useUserManagement";
 import { useToast } from "../hooks/useToast";
+import { useQueryClient } from "@tanstack/react-query";
+import type { User, UserFormValues } from "../types/user";
 
 const headers = ["Name", "Email", "Phone", "Actions"];
 
@@ -20,6 +21,7 @@ export const UsersPage = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const { showSuccess, showError } = useToast();
+  const queryClient = useQueryClient();
 
   const {
     users,
@@ -27,13 +29,80 @@ export const UsersPage = () => {
     isLoading,
     error,
 
-    handleSubmit,
-    handleDelete,
+    createUserMutation,
+    updateUserMutation,
+    deleteUserMutation,
 
     isSubmitting,
     isDeleting,
     filteredUsers,
   } = useUserManagement(search);
+
+  const handleSubmit = (data: UserFormValues) => {
+    if (selectedUser) {
+      updateUserMutation.mutate(
+        {
+          id: selectedUser.id,
+          user: data,
+        },
+        {
+          onSuccess: async () => {
+            await queryClient.invalidateQueries({
+              queryKey: ["users"],
+            });
+
+            setSelectedUser(null);
+            setIsModalOpen(false);
+
+            showSuccess("User updated successfully");
+          },
+
+          onError: () => {
+            showError("Failed to update user");
+          },
+        },
+      );
+
+      return;
+    }
+
+    createUserMutation.mutate(data, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: ["users"],
+        });
+
+        setSelectedUser(null);
+        setIsModalOpen(false);
+
+        showSuccess("User created successfully");
+      },
+
+      onError: () => {
+        showError("Failed to create user");
+      },
+    });
+  };
+
+  const handleDelete = () => {
+    if (!userToDelete) return;
+
+    deleteUserMutation.mutate(userToDelete.id, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: ["users"],
+        });
+
+        setUserToDelete(null);
+
+        showSuccess("User deleted successfully");
+      },
+
+      onError: () => {
+        showError("Failed to delete user");
+      },
+    });
+  };
 
   return (
     <>
@@ -151,28 +220,7 @@ export const UsersPage = () => {
               : undefined
           }
           isSubmitting={isSubmitting}
-          onSubmit={(data) =>
-            handleSubmit(data, selectedUser, {
-              onSuccess: () => {
-                setSelectedUser(null);
-                setIsModalOpen(false);
-
-                showSuccess(
-                  selectedUser
-                    ? "User updated successfully"
-                    : "User created successfully",
-                );
-              },
-
-              onError: () => {
-                showError(
-                  selectedUser
-                    ? "Failed to update user"
-                    : "Failed to create user",
-                );
-              },
-            })
-          }
+          onSubmit={handleSubmit}
         />
       </Modal>
 
@@ -181,19 +229,7 @@ export const UsersPage = () => {
         userName={userToDelete?.name ?? ""}
         isDeleting={isDeleting}
         onClose={() => setUserToDelete(null)}
-        onConfirm={() =>
-          handleDelete(userToDelete, {
-            onSuccess: () => {
-              setUserToDelete(null);
-
-              showSuccess("User deleted successfully");
-            },
-
-            onError: () => {
-              showError("Failed to delete user");
-            },
-          })
-        }
+        onConfirm={handleDelete}
       />
     </>
   );
