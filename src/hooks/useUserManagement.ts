@@ -8,7 +8,7 @@ import {
   useDeleteUser,
 } from "../services/userService";
 
-import type { User } from "../types/user";
+import type { User, UserFormValues } from "../types/user";
 
 //  Business logic for user management
 
@@ -47,11 +47,7 @@ export const useUserManagement = (search: string) => {
   }, [users, debouncedSearch]);
 
   const handleSubmit = (
-    data: {
-      name: string;
-      email: string;
-      phone: string;
-    },
+    data: UserFormValues,
     selectedUser: User | null,
     callbacks: {
       onSuccess: () => void;

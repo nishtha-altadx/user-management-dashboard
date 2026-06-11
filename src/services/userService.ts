@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import type { User } from "../types/user";
+import type { User, UserFormValues } from "../types/user";
 
 const BASE_URL = "https://jsonplaceholder.typicode.com";
 
@@ -10,11 +10,7 @@ export const getUsers = async (): Promise<User[]> => {
   return response.data;
 };
 
-export const createUser = async (user: {
-  name: string;
-  email: string;
-  phone: string;
-}) => {
+export const createUser = async (user: UserFormValues) => {
   const response = await axios.post(`${BASE_URL}/users`, user);
   return response.data;
 };
@@ -24,11 +20,7 @@ export const updateUser = async ({
   user,
 }: {
   id: number;
-  user: {
-    name: string;
-    email: string;
-    phone: string;
-  };
+  user: UserFormValues;
 }) => {
   const response = await axios.put(`${BASE_URL}/users/${id}`, user);
 

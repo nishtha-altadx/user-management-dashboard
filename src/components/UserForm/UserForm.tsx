@@ -5,17 +5,14 @@ import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { userSchema, type UserFormData } from "../../types/userSchema";
+import type { UserFormValues } from "../../types/user";
 
 interface UserFormProps {
   onSubmit: (data: UserFormData) => void;
 
   isSubmitting?: boolean;
 
-  initialValues?: {
-    name: string;
-    email: string;
-    phone: string;
-  };
+  initialValues?: UserFormValues;
 }
 
 export const UserForm = ({
