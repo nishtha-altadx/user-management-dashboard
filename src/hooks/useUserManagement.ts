@@ -1,41 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
-  getUsers,
-  createUser,
-  updateUser,
-  deleteUser,
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
 } from "../services/userService";
 
 import type { User } from "../types/user";
-
-// reusable  hooks
-
-export const useUsers = () => {
-  return useQuery({
-    queryKey: ["users"],
-    queryFn: getUsers,
-  });
-};
-
-export const useCreateUser = () => {
-  return useMutation({
-    mutationFn: createUser,
-  });
-};
-
-export const useUpdateUser = () => {
-  return useMutation({
-    mutationFn: updateUser,
-  });
-};
-
-export const useDeleteUser = () => {
-  return useMutation({
-    mutationFn: deleteUser,
-  });
-};
 
 //  Business logic for user management
 
