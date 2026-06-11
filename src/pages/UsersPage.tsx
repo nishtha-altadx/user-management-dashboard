@@ -29,79 +29,47 @@ export const UsersPage = () => {
     isLoading,
     error,
 
-    createUserMutation,
-    updateUserMutation,
-    deleteUserMutation,
+    handleUpdateUser,
+    handleCreateUser,
+    handleDeleteUser,
 
     isSubmitting,
     isDeleting,
     filteredUsers,
   } = useUserManagement(search);
 
-  const handleSubmit = (data: UserFormValues) => {
-    if (selectedUser) {
-      updateUserMutation.mutate(
-        {
-          id: selectedUser.id,
-          user: data,
-        },
-        {
-          onSuccess: async () => {
-            await queryClient.invalidateQueries({
-              queryKey: ["users"],
-            });
+  const handleSubmit = async (data: UserFormValues) => {
+    try {
+      if (selectedUser) {
+        await handleUpdateUser(selectedUser.id, data);
 
-            setSelectedUser(null);
-            setIsModalOpen(false);
-
-            showSuccess("User updated successfully");
-          },
-
-          onError: () => {
-            showError("Failed to update user");
-          },
-        },
-      );
-
-      return;
-    }
-
-    createUserMutation.mutate(data, {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({
-          queryKey: ["users"],
-        });
-
-        setSelectedUser(null);
-        setIsModalOpen(false);
+        showSuccess("User updated successfully");
+      } else {
+        await handleCreateUser(data);
 
         showSuccess("User created successfully");
-      },
+      }
 
-      onError: () => {
-        showError("Failed to create user");
-      },
-    });
+      setSelectedUser(null);
+      setIsModalOpen(false);
+    } catch {
+      showError(
+        selectedUser ? "Failed to update user" : "Failed to create user",
+      );
+    }
   };
-
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!userToDelete) return;
 
-    deleteUserMutation.mutate(userToDelete.id, {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({
-          queryKey: ["users"],
-        });
+    try {
+      await handleDeleteUser(userToDelete.id);
 
-        setUserToDelete(null);
+      setUserToDelete(null);
 
-        showSuccess("User deleted successfully");
-      },
-
-      onError: () => {
-        showError("Failed to delete user");
-      },
-    });
+      showSuccess("User deleted successfully");
+    } catch {
+      showError("Failed to delete user");
+    }
   };
 
   return (

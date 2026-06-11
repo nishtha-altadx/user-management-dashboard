@@ -6,11 +6,14 @@ import {
   useUpdateUser,
   useDeleteUser,
 } from "../services/userService";
+import { useQueryClient } from "@tanstack/react-query";
+import type { UserFormValues } from "../types/user";
 
 export const useUserManagement = (search: string) => {
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   const { data: users = [], isLoading, error } = useUsers();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -23,6 +26,29 @@ export const useUserManagement = (search: string) => {
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
+
+  const handleUpdateUser = async (id: number, user: UserFormValues) => {
+    await updateUserMutation.mutateAsync({ id, user });
+    await queryClient.invalidateQueries({
+      queryKey: ["users"],
+    });
+  };
+
+  const handleCreateUser = async (user: UserFormValues) => {
+    await createUserMutation.mutateAsync(user);
+
+    await queryClient.invalidateQueries({
+      queryKey: ["users"],
+    });
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    await deleteUserMutation.mutateAsync(id);
+
+    await queryClient.invalidateQueries({
+      queryKey: ["users"],
+    });
+  };
 
   const filteredUsers = useMemo(() => {
     const searchText = debouncedSearch.trim().toLowerCase();
@@ -51,9 +77,9 @@ export const useUserManagement = (search: string) => {
     isLoading,
     error,
 
-    createUserMutation,
-    updateUserMutation,
-    deleteUserMutation,
+    handleUpdateUser,
+    handleCreateUser,
+    handleDeleteUser,
 
     isSubmitting,
     isDeleting,
