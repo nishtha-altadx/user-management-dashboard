@@ -10,7 +10,6 @@ import { UserForm } from "../components/UserForm/UserForm";
 import { DeleteConfirmationModal } from "../components/DeleteConfirmationModal/DeleteConfirmationModal";
 import { useUserManagement } from "../hooks/useUserManagement";
 import { useToast } from "../hooks/useToast";
-import { useQueryClient } from "@tanstack/react-query";
 import type { User, UserFormValues } from "../types/user";
 
 const headers = ["Name", "Email", "Phone", "Actions"];
@@ -21,7 +20,6 @@ export const UsersPage = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const { showSuccess, showError } = useToast();
-  const queryClient = useQueryClient();
 
   const {
     users,
