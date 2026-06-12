@@ -11,6 +11,7 @@ import { DeleteConfirmationModal } from "../components/DeleteConfirmationModal/D
 import { useUserManagement } from "../hooks/useUserManagement";
 import { useToast } from "../hooks/useToast";
 import type { User, UserFormValues } from "../types/user";
+import { useNavigate } from "react-router-dom";
 
 const headers = ["Name", "Email", "Phone", "Actions"];
 
@@ -20,6 +21,7 @@ export const UsersPage = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const { showSuccess, showError } = useToast();
+  const navigate = useNavigate();
 
   const {
     users,
@@ -154,6 +156,13 @@ export const UsersPage = () => {
                         onClick={() => setUserToDelete(user)}
                       >
                         Delete
+                      </Button>
+
+                      <Button
+                        variant="secondary"
+                        onClick={() => navigate(`/users/${user.id}`)}
+                      >
+                        Details
                       </Button>
                     </div>
                   );

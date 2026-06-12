@@ -10,6 +10,12 @@ export const getUsers = async (): Promise<User[]> => {
   return response.data;
 };
 
+export const getUserById = async (id: string) => {
+  const response = await axios.get<User>(`${BASE_URL}/users/${id}`);
+
+  return response.data;
+};
+
 export const createUser = async (user: UserFormValues) => {
   const response = await axios.post(`${BASE_URL}/users`, user);
   return response.data;
@@ -37,6 +43,14 @@ export const useUsers = () => {
   return useQuery({
     queryKey: ["users"],
     queryFn: getUsers,
+  });
+};
+
+export const useUser = (id: string) => {
+  return useQuery({
+    queryKey: ["user", id],
+    queryFn: () => getUserById(id),
+    enabled: !!id,
   });
 };
 

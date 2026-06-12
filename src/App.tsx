@@ -1,7 +1,7 @@
-import { UsersPage } from "./pages/UsersPage";
+import { AppRoutes } from "./routes/AppRoutes";
 
 function App() {
-  return <UsersPage />;
+  return <AppRoutes />;
 }
 
 export default App;
